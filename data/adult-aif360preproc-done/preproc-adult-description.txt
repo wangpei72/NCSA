@@ -1,0 +1,17 @@
+adult :
+Total shape: (48842, 14)
+Train set shape: (39073, 14)
+Test set shape: (9769, 14)
+Features: age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex
+,capital-gain,capital-loss,hours-per-week,native-country
+Labels: income-per-year
+Meta-data:
+
+all_protected_attribute_maps = {"sex": {1: 'Male', 0: 'Female'},
+                                    "race": {1: 'White', 0: 'Non-white'}}
+all_privileged_classes = {"sex": [1],
+                              "race": [1]}
+Protected attrs : sex race
+Protected attrs index : 10 9
+label_maps = [{1: '>50K', 0: '<=50K'}
+favorable_classes = [1]
