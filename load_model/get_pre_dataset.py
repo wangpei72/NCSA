@@ -38,17 +38,24 @@ def predict_dnn5(sample_feed_path, input_shape=(None, 20), nb_classes=2,
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
     model = dnn5(input_shape, nb_classes)
     preds = model(x)
-    saver = tf.train.Saver()
-    model_path = model_path
-    saver.restore(sess, model_path)
-
-    # construct the gradient graph
     grad_0 = gradient_graph(x, preds)
+    # saver = tf.train.Saver()
+    model_path = model_path
+
+    saver = tf.train.import_meta_graph(model_path + '.meta')
+    # tf.get_variable_scope().reuse_variables()
+    saver.restore(sess, model_path)
+    sess.run(
+        [tf.global_variables_initializer(),
+         tf.local_variables_initializer()]
+    )
     # predict
     sample_tmp = np.load(sample_feed_path)
     label_tmp = model_argmax(sess, x, preds, sample_tmp)
+    ranker_score = model_probab(sess, x, preds, sample_tmp)
     sess.close()
-    return label_tmp
+    tf.reset_default_graph()
+    return label_tmp, ranker_score
 
 
 def gen_relative_sample_feed_path_list(dataset_name='adult', test_id=1):
@@ -62,9 +69,9 @@ def gen_relative_sample_feed_path_list(dataset_name='adult', test_id=1):
         label_path = '../data/' + dataset_name + '-aif360preproc-done/' + 'test/' + str(
             test_id) + '/labels-test-' + str((i + 1) * 5) + '%.npy'
         feat_path = '../data/' + dataset_name + '-aif360preproc-done/' + 'test/' + str(
-            test_id) + '/features-test-' + str((i + 1) * 5) + '%.npy'
+            test_id) + '/featrures-test-' + str((i + 1) * 5) + '%.npy'
         pred_path = '../data/' + dataset_name + '-aif360preproc-done/' + 'test/' + str(
-            test_id) + '/2d-pred-test-' + str((i + 1) * 5) + '%.npy'
+            test_id) + '/2d-score-test-' + str((i + 1) * 5) + '%.npy'
         two_d_labels_test_rela_path_list.append(two_d_path)
         labels_test_rela_path_list.append(label_path)
         features_test_rela_path_list.append(feat_path)
@@ -83,9 +90,9 @@ def gen_absolute_sample_feed_path_list(dataset_name='adult', test_id=1):
         label_path = '../data/' + dataset_name + '-aif360preproc-done/' + 'test/' + str(
             test_id) + '/labels-test-' + str((i + 1) * 100) + '.npy'
         feat_path = '../data/' + dataset_name + '-aif360preproc-done/' + 'test/' + str(
-            test_id) + '/features-test-' + str((i + 1) * 100) + '.npy'
+            test_id) + '/featrures-test-' + str((i + 1) * 100) + '.npy'
         pred_path = '../data/' + dataset_name + '-aif360preproc-done/' + 'test/' + str(
-            test_id) + '/2d-pred-test-' + str((i + 1) * 100) + '.npy'
+            test_id) + '/2d-score-test-' + str((i + 1) * 100) + '.npy'
         two_d_labels_test_abso_path_list.append(two_d_path)
         labels_test_abso_path_list.append(label_path)
         features_test_abso_path_list.append(feat_path)
@@ -116,11 +123,11 @@ def get_rela_pred_npy():
                 gen_relative_sample_feed_path_list(dataset_rela_list[dataset_id], test_id + 1)
             for test_path_i in range(len(features_test_rela_path_list)):
                 model_path = gen_model_path(dataset_name=dataset_rela_list[dataset_id], model_type='dnn5')
-                preds_array = predict_dnn5(features_test_rela_path_list[test_path_i],
+                label_tmp, ranker_score = predict_dnn5(features_test_rela_path_list[test_path_i],
                              input_shape=dataset_shape_map[dataset_rela_list[dataset_id]],
                              nb_classes=2,
                              model_path=model_path)
-                np.save(preds_array, pred_rela_path_list[test_path_i])
+                np.save(pred_rela_path_list[test_path_i], ranker_score)
 
 
 def get_abso_pre_npy():
@@ -132,11 +139,11 @@ def get_abso_pre_npy():
                 gen_absolute_sample_feed_path_list(dataset_abso_list[i], j+1)
             for path_i in range(len(features_test_abso_path_list)):
                 model_path = gen_model_path(dataset_name=dataset_abso_list[i], model_type='dnn5')
-                preds_array = predict_dnn5(features_test_abso_path_list[path_i],
+                label_tmp, ranker_score = predict_dnn5(features_test_abso_path_list[path_i],
                                            input_shape=dataset_shape_map[dataset_abso_list[i]],
                                            nb_classes=2,
                                            model_path=model_path)
-                np.save(preds_array, pred_abso_path_list[path_i])
+                np.save(pred_abso_path_list[path_i], ranker_score)
 
 
 if __name__ == '__main__':
