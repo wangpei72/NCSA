@@ -189,3 +189,10 @@ def model_argmax(sess, x, predictions, samples, feed=None):
         return np.argmax(probabilities)
     else:
         return np.argmax(probabilities, axis=1)
+
+def model_probab(sess, x, predictions, samples, feed=None):
+    feed_dict = {x: samples}
+    if feed is not None:
+        feed_dict.update(feed)
+    probabilities = sess.run(predictions, feed_dict)
+    return probabilities
