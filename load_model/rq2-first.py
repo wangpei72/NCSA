@@ -1,4 +1,5 @@
 import csv
+import os.path
 import sys
 
 sys.path.append("../")
@@ -43,7 +44,7 @@ def get_all_relative_dm_list():
             print('dataset with d is %s' % dataset_with_d_attr_list[dataset_id])
             two_d_labels_test_rela_path_list, features_test_rela_path_list, labels_test_rela_path_list, pred_rela_path_list = \
                 gen_relative_sample_feed_path_list(dataset_list_compat[dataset_id], test_id + 1)
-
+            single_test_list=[]
             for test_path_i in range(len(features_test_rela_path_list)):
                 dm_single_test = structure_metric_class_from_npy(features_test_rela_path_list[test_path_i],
                                                      two_d_labels_test_rela_path_list[test_path_i],
@@ -52,7 +53,9 @@ def get_all_relative_dm_list():
                                                      dataset_with_d_name=dataset_with_d_attr_list[dataset_id],
                                                      print_bool=True
                                                      )
-                dm_5_test_list.append(dm_single_test)
+                single_test_list.append(dm_single_test)
+            assert len(single_test_list) == 20
+            dm_5_test_list.append(single_test_list)
         assert len(dm_5_test_list) == 5
         dm_overall_tests_list.append(dm_5_test_list)
     assert len(dm_overall_tests_list) == 11
@@ -128,13 +131,62 @@ def wrt_rela_dm_to_csv(dm_overall_list, dataset_name='adult', dataset_d_name='ad
 
 
 def main():
-    dm_overall_rela_list = get_all_relative_dm_list()
-    for i in range(len(data_set_list_compat)):
-        dataset_name = dataset_list_compat[i]
-        dataset_name_d = dataset_with_d_attr_list[i]
-        wrt_rela_dm_to_csv(dm_overall_rela_list, dataset_name=dataset_name,
-                           dataset_d_name=dataset_name_d,
-                           model_type='dnn5')
+    for i in range(len(dataset_list_compat)):
+        out_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..',
+                                    'fairness_resullt', 'rq2a_rela','relative.csv' )
+        f = open(out_csv_path, 'w', newline='')
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(
+            ["size", "SPD", "EOOD", "EOOP", "DI", "ACC", "SPD_mean", "EOOD_mean", "EOOP_mean", "DI_mean", "ACC_mean"])
+        print('now dataset compat id %d' % (i + 1))
+        for j in range(20): # 5%为阶梯或者 100为阶梯
+            n = j + 1
+            m = str(n * 5)
+            spd = 0
+            di = 0
+            eood = 0
+            eoop = 0
+            acc = 0
+            for k in range(5):
+                print('=============' + m + 'steps' + '-' + str(k + 1) + 'times=================')
+                X_test = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
+                                 'data', dataset_list_compat[i] + '-aif360preproc-done', 'test',
+                                 str(k+1), 'featrures-test-' + m + '%.npy'))
+                Y_two_test = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
+                                 'data', dataset_list_compat[i] + '-aif360preproc-done', 'test',
+                                 str(k + 1), '2d-labels-test-' + m + '%.npy'))
+                pred_two_test = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
+                                     'data', dataset_list_compat[i] + '-aif360preproc-done', 'test',
+                                     str(k + 1), '2d-score-test-' + m + '%.npy'))
+                Y_test = np.argmax(Y_two_test, axis=1)[:, np.newaxis]
+                pred_test = np.argmax(pred_two_test, axis=1)[:, np.newaxis]
+                dm = structring_classification_dataset_from_npy_array(X_test,Y_test, pred_test,
+                                                                      dataset_name=dataset_list_compat[i],
+                                                                      dataset_with_d_name=dataset_with_d_attr_list[i],
+                                                                      print_bool=True)
+                SPD = dm.statistical_parity_difference()
+                DI = dm.disparate_impact()
+                EOOD = dm.average_abs_odds_difference()
+                EOOP = dm.equal_opportunity_difference()
+                ACC = dm.accuracy()
+                spd += SPD
+                di += DI
+                eood += EOOD
+                eoop += EOOP
+                acc += ACC
+                if k == 4:
+                    spd /= 5.
+                    di /= 5.
+                    eood /= 5.
+                    eoop /= 5.
+                    acc /= 5.
+
+                    csv_writer.writerow([m + '%',  SPD, EOOD, EOOP, DI, ACC, spd, eood, eoop, di, acc])
+                else:
+                    csv_writer.writerow([m + '%',  SPD, EOOD, EOOP, DI, ACC])
+
+
+
 
 
 if __name__ == '__main__':
