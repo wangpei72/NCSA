@@ -22,7 +22,7 @@ gen_relative_sample_feed_path_list(dataset_name='adult')
 def main():
     for i in range(len(dataset_list_compat)):
         out_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..',
-                                    'fairness_resullt', 'rq2a_rela',dataset_with_d_attr_list[i] )
+                                    'fairness_result', 'rq2a_rela',dataset_with_d_attr_list[i] )
         if not os.path.exists(out_csv_path):
             os.makedirs(out_csv_path)
         f = open(out_csv_path +'/relative.csv', 'w+', newline='')
