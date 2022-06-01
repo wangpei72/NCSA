@@ -8,31 +8,42 @@ from aif360.algorithms.preprocessing.optim_preproc_helpers.structure_dataset_hel
 from get_pre_dataset import *
 
 
-dataset_list = dataset_list()
-dataset_list_compat = dataset_list_compat()
-dataset_d_list = dataset_d_list()
+data_set_list = ['adult', 'compas', 'bank',
+                 'default',
+                 'meps15', 'meps16'] # 6个
+data_set_list_compat = ['adult', 'adult',
+                        'compas', 'compas',
+                        'bank',
+                        'default',
+                        'meps15', 'meps16']
+dataset_with_d_attr_list = ['adult_race', 'adult_sex',
+                            'compas_race', 'compas_sex',
+                            'bank_age',
+                            'default_sex',
+                            'meps15_race',
+                            'meps16_race'] # 8组
 two_d_labels_test_rela_path_list, features_test_rela_path_list, labels_test_rela_path_list, pred_rela_path_list =\
 gen_relative_sample_feed_path_list(dataset_name='adult')
-# 注意，这里rq2，需要对所有数据集的，相对大小子集进行测试，输入为： x y pred
+# 注意，这里rq2，需要对所有数据集的，绝对大小子集进行测试，输入为： x y pred
 # pre文件为了方便rw做ranker的学习，我们用的都是二维的，需要先调一次argmax
 # 同时y的选用也有讲究，我们用2dlabels，所以，判断的时候也需要先argmax
 # 因为我们的2dlabel已经是带了语义的，0就是0，1就是1，不存在根据fav是谁进行判断的问题，可以直接知晓一个案例是正还是负样本
 
 
 def main():
-    for i in range(len(dataset_list_compat)):
+    for i in range(len(data_set_list_compat)):
         out_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..',
-                                    'fairness_result', 'rq2a_rela', 'dnn5', dataset_with_d_attr_list[i] )
+                                    'fairness_result', 'rq2b_abso','dnn5', dataset_with_d_attr_list[i] )
         if not os.path.exists(out_csv_path):
             os.makedirs(out_csv_path)
-        f = open(out_csv_path +'/relative.csv', 'w+', newline='')
+        f = open(out_csv_path +'/absolute.csv', 'w+', newline='')
         csv_writer = csv.writer(f)
         csv_writer.writerow(
             ["size", "SPD", "EOOD", "EOOP", "DI", "ACC", "SPD_mean", "EOOD_mean", "EOOP_mean", "DI_mean", "ACC_mean"])
         print('now dataset compat id %d' % (i + 1))
         for j in range(20): # 5%为阶梯或者 100为阶梯
             n = j + 1
-            m = str(n * 5)
+            m = str(n * 100)
             spd = 0
             di = 0
             eood = 0
@@ -41,18 +52,18 @@ def main():
             for k in range(5):
                 print('=============' + m + 'steps' + '-' + str(k + 1) + 'times=================')
                 X_test = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
-                                 'data', dataset_list_compat[i] + '-aif360preproc-done', 'test',
-                                 str(k+1), 'featrures-test-' + m + '%.npy'))
+                                 'data', data_set_list_compat[i] + '-aif360preproc-done', 'test',
+                                 str(k+1), 'featrures-test-' + m + '.npy'))
                 Y_two_test = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
-                                 'data', dataset_list_compat[i] + '-aif360preproc-done', 'test',
-                                 str(k + 1), '2d-labels-test-' + m + '%.npy'))
+                                 'data', data_set_list_compat[i] + '-aif360preproc-done', 'test',
+                                 str(k + 1), '2d-labels-test-' + m + '.npy'))
                 pred_two_test = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
-                                     'data', dataset_list_compat[i] + '-aif360preproc-done', 'test',
-                                     str(k + 1), '2d-score-test-' + m + '%.npy'))
+                                     'data', data_set_list_compat[i] + '-aif360preproc-done', 'test',
+                                     str(k + 1), '2d-score-test-' + m + '.npy'))
                 Y_test = np.argmax(Y_two_test, axis=1)[:, np.newaxis]
                 pred_test = np.argmax(pred_two_test, axis=1)[:, np.newaxis]
                 dm = structring_classification_dataset_from_npy_array(X_test,Y_test, pred_test,
-                                                                      dataset_name=dataset_list_compat[i],
+                                                                      dataset_name=data_set_list_compat[i],
                                                                       dataset_with_d_name=dataset_with_d_attr_list[i],
                                                                       print_bool=True)
                 SPD = dm.statistical_parity_difference()
@@ -72,9 +83,9 @@ def main():
                     eoop /= 5.
                     acc /= 5.
 
-                    csv_writer.writerow([m + '%',  SPD, EOOD, EOOP, DI, ACC, spd, eood, eoop, di, acc])
+                    csv_writer.writerow([m ,  SPD, EOOD, EOOP, DI, ACC, spd, eood, eoop, di, acc])
                 else:
-                    csv_writer.writerow([m + '%',  SPD, EOOD, EOOP, DI, ACC])
+                    csv_writer.writerow([m ,  SPD, EOOD, EOOP, DI, ACC])
         f.close()
 
 
