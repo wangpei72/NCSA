@@ -63,16 +63,19 @@ def sc(datasets, model_name, model_path, X_train, X_test, input_shape, samples_p
 
     kdes_store_path = store_path + 'kdes.npy'
     if os.path.exists(kdes_store_path):
-        kdes = np.load(kdes_store_path).item()
+        kdes = np.load(kdes_store_path, allow_pickle=True).item()
     else:
         kdes = {}
         for i in range(2):  # 二分类,N分类的话range括号内填N
             print(a_n_train)
             print(len(a_n_train[class_inds[i]]))
             print(-1.0/(len(a_n_train[0])+4))
-            scott_bw = pow(len(a_n_train[class_inds[i]]), -1.0/(len(a_n_train[0])+4))
+            if len(a_n_train[class_inds[i]]) == 0:
+                return 0, 0
+            else:
+                scott_bw = pow(len(a_n_train[class_inds[i]]), -1.0/(len(a_n_train[0])+4))
 
-            kdes[i] = KernelDensity(kernel='gaussian',
+                kdes[i] = KernelDensity(kernel='gaussian',
                                     bandwidth=scott_bw).fit(a_n_train[class_inds[i]])
         np.save(kdes_store_path, kdes)
 

@@ -44,7 +44,7 @@ def multi_testing_criteria(datasets, model_name, model_path, input_shape, sample
         gc.collect()
         np.save(store_path + "boundary.npy", np.asarray(boundary))
     else:
-        boundary = np.load(store_path + "boundary.npy").tolist()
+        boundary = np.load(store_path + "boundary.npy", allow_pickle=True).tolist()
 
     k_coverage, boundary_coverage, neuron_number = init_coverage_metric(boundary, k_n)
 
@@ -75,7 +75,7 @@ def multi_testing_criteria(datasets, model_name, model_path, input_shape, sample
             del sess, preds, x, y, model, feed_dict, input_data
             gc.collect()
         else:
-            layers_output = np.load(store_path + 'layers_output_' + str(num) + '.npy')
+            layers_output = np.load(store_path + 'layers_output_' + str(num) + '.npy', allow_pickle=True)
 
         k_coverage, boundary_coverage = update_multi_coverage_neuron(layers_output, k_n, boundary, k_coverage,
                                                                      boundary_coverage, std_range)

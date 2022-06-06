@@ -391,17 +391,46 @@ def update_multi_coverage_neuron(layers_output, k_n, boundary, k_coverage, bound
 
 def model_load(datasets, model_name, input_shape, model_path):
 
-    model = dnn5(input_shape, 2) # 更换不同层数的模型时需要改变
+
     x = tf.placeholder(tf.float32, shape=input_shape)
     y = tf.placeholder(tf.float32, shape=(None, 2))
-    preds = model(x)
+    nb_classes = 2
+    if model_name == 'dnn1':
+        model = dnn1(input_shape, nb_classes)
+        preds = model(x)
+    elif model_name == 'dnn3':
+        model = dnn3(input_shape, nb_classes)
+        preds = model(x)
+    elif model_name == 'dnn7':
+        model = dnn7(input_shape, nb_classes)
+        preds = model(x)
+    elif model_name == 'dnn9':
+        model = dnn9(input_shape, nb_classes)
+        preds = model(x)
+    elif model_name == 'dnn2':
+        model = dnn2(input_shape, nb_classes)
+        preds = model(x)
+    elif model_name == 'dnn4':
+        model = dnn4(input_shape, nb_classes)
+        preds = model(x)
+    else:
+        assert model_name == 'dnn5'
+        model = dnn5(input_shape, nb_classes)
+        preds = model(x)
+
     tf.set_random_seed(1234)
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.8
     sess = tf.Session(config=config)
-    saver = tf.train.Saver()
     model_path = model_path + datasets + "/" + model_name + "/999/test.model"
+    # model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',)
+    saver = tf.train.import_meta_graph(model_path + '.meta')
+
     saver.restore(sess, model_path)
+    sess.run(
+        [tf.global_variables_initializer(),
+         tf.local_variables_initializer()]
+    )
     feed_dict = None
     print("Defined TensorFlow model graph.")
 
@@ -424,5 +453,7 @@ def datasize(datasets):
     elif datasets=="default":
         return (None,23)
     elif datasets=="meps15":
+        return (None,42)
+    elif datasets=="meps16":
         return (None,42)
 

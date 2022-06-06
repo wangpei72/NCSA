@@ -1,6 +1,7 @@
 from load_model.network import *
 from load_model.layer import *
 
+
 def dnn5(input_shape, nb_classes=2):
     """
     The implementation of a DNN model
@@ -24,6 +25,88 @@ def dnn5(input_shape, nb_classes=2):
 
     model = MLP(layers, input_shape)
     return model
+
+
+def dnn4(input_shape, nb_classes=2):
+    """
+    The implementation of a DNN model
+    :param input_shape: the shape of dataset
+    :param nb_classes: the number of classes
+    :return: a DNN model
+    """
+    activation = ReLU
+    layers = [Linear(32),
+              activation(),
+              Linear(16),
+              activation(),
+              Linear(8),
+              activation(),
+              Linear(4),
+              activation(),
+              Linear(nb_classes),
+              Softmax()]
+
+    model = MLP(layers, input_shape)
+    return model
+
+
+def dnn2(input_shape, nb_classes=2):
+    """
+    The implementation of a DNN model
+    :param input_shape: the shape of dataset
+    :param nb_classes: the number of classes
+    :return: a DNN model
+    """
+    activation = ReLU
+    layers = [Linear(8),
+              activation(),
+              Linear(4),
+              activation(),
+              Linear(nb_classes),
+              Softmax()]
+
+    model = MLP(layers, input_shape)
+    return model
+
+
+def dnn3(input_shape, nb_classes=2):
+    """
+    The implementation of a DNN model
+    :param input_shape: the shape of dataset
+    :param nb_classes: the number of classes
+    :return: a DNN model
+    """
+    activation = ReLU
+    layers = [Linear(16),
+              activation(),
+              Linear(8),
+              activation(),
+              Linear(4),
+              activation(),
+              Linear(nb_classes),
+              Softmax()]
+
+    model = MLP(layers, input_shape)
+    return model
+
+
+def dnn1(input_shape, nb_classes=2):
+    """
+    The implementation of a DNN model
+    :param input_shape: the shape of dataset
+    :param nb_classes: the number of classes
+    :return: a DNN model
+    """
+    activation = ReLU
+    layers = [
+        Linear(4),
+        activation(),
+        Linear(nb_classes),
+        Softmax()]
+
+    model = MLP(layers, input_shape)
+    return model
+
 
 def dnn9(input_shape, nb_classes=2):
     """
@@ -58,6 +141,7 @@ def dnn9(input_shape, nb_classes=2):
     model = MLP(layers, input_shape)
     return model
 
+
 def dnn7(input_shape, nb_classes=2):
     """
     The implementation of a DNN model
@@ -86,42 +170,6 @@ def dnn7(input_shape, nb_classes=2):
     model = MLP(layers, input_shape)
     return model
 
-def dnn3(input_shape, nb_classes=2):
-    """
-    The implementation of a DNN model
-    :param input_shape: the shape of dataset
-    :param nb_classes: the number of classes
-    :return: a DNN model
-    """
-    activation = ReLU
-    layers = [Linear(16),
-              activation(),
-              Linear(8),
-              activation(),
-              Linear(4),
-              activation(),
-              Linear(nb_classes),
-              Softmax()]
-
-    model = MLP(layers, input_shape)
-    return model
-
-def dnn1(input_shape, nb_classes=2):
-    """
-    The implementation of a DNN model
-    :param input_shape: the shape of dataset
-    :param nb_classes: the number of classes
-    :return: a DNN model
-    """
-    activation = ReLU
-    layers = [
-              Linear(4),
-              activation(),
-              Linear(nb_classes),
-              Softmax()]
-
-    model = MLP(layers, input_shape)
-    return model
 
 def gradient_graph(x, preds, y=None):
     """
@@ -168,6 +216,7 @@ def model_loss(y, model, mean=True):
         out = tf.reduce_mean(out)
     return out
 
+
 def model_argmax(sess, x, predictions, samples, feed=None):
     """
     Helper function that computes the current class prediction
@@ -190,9 +239,14 @@ def model_argmax(sess, x, predictions, samples, feed=None):
     else:
         return np.argmax(probabilities, axis=1)
 
+
 def model_probab(sess, x, predictions, samples, feed=None):
     feed_dict = {x: samples}
     if feed is not None:
         feed_dict.update(feed)
     probabilities = sess.run(predictions, feed_dict)
     return probabilities
+
+
+
+
